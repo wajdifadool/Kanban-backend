@@ -1,5 +1,13 @@
 const mongoose = require('mongoose')
 // “The arrow entering the table that has the many symbol → that collection holds the ref.”
+/**
+ * You can expose a small label management API if needed:
+
+Route	Description
+  PUT /api/v1/boards/:id/labels/:labelId	Update a specific label’s name/color
+  POST /api/v1/boards/:id/labels	Add a new label
+  DELETE /api/v1/boards/:id/labels/:labelId	Delete a label
+ */
 /* -------------------- Board -------------------- */
 const BoardSchema = new mongoose.Schema(
   {
@@ -25,6 +33,8 @@ const BoardSchema = new mongoose.Schema(
         },
       },
     ],
+
+    // labels: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Label' }], move to this
     labels: [
       {
         _id: false,
@@ -56,3 +66,10 @@ const BoardSchema = new mongoose.Schema(
 )
 
 module.exports = mongoose.model('Board', BoardSchema)
+
+BoardSchema.methods.isMember = function (userId) {
+  return (
+    this.owner.equals(userId) ||
+    this.members.some((m) => m.userId.equals(userId))
+  )
+}

@@ -1,7 +1,7 @@
-const express = require('express');
-const { getSample } = require('../controllers/sample');
-const router = express.Router();
+const express = require('express')
+const { getSample } = require('../controllers/sample')
+const router = express.Router()
 
-router.get('/', getSample);
+router.get('/', getSample)
 
-module.exports = router;
+module.exports = router

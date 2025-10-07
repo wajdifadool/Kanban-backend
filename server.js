@@ -9,6 +9,8 @@ const errorHandler = require('./middleware/errorHandler')
 // Routes
 const authRoutes = require('./routes/auth')
 const boardRoutes = require('./routes/boardRoutes')
+const listRoutes = require('./routes/listRoutes')
+const cardRoutes = require('./routes/cardRoutes')
 
 dotenv.config({ path: './config/.env' })
 connectDB()
@@ -22,6 +24,11 @@ app.use(morgan('dev'))
 /* ---- Routes ---- */
 app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/boards', boardRoutes)
+app.use('/api/v1/boards/:boardId/lists', listRoutes)
+app.use('/api/v1/lists', listRoutes)
+
+app.use('/api/v1/cards', cardRoutes)
+app.use('/api/v1/boards/:boardId/lists/:listId/cards', cardRoutes)
 
 app.use(errorHandler)
 
