@@ -9,6 +9,7 @@ const {
   addComment,
   deleteComment,
   updateComment,
+  getComments,
   addChecklistItem,
   toggleChecklistItem,
   deleteChecklistItem,
@@ -55,6 +56,8 @@ router.post('/:cardId/duplicate', protect, duplicateCard)
 // @route   POST /api/v1/cards/:cardId/comments
 // @access  Private
 router.route('/:cardId/comments').post(protect, addComment)
+router.route('/:cardId/comments').get(protect, getComments)
+
 router.route('/:cardId/comments/:commentId').put(protect, updateComment)
 
 // @desc    Delete a comment

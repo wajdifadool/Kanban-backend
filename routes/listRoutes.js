@@ -42,6 +42,7 @@ const router = express.Router({ mergeParams: true })
 // @desc    Create a list under a specific board
 // @route   POST /api/v1/boards/:boardId/lists
 // @access  Private
+// TODO: Enahnce repsonse message
 router.route('/').get(protect, getBoardMiddleware, isMemberinBoard, getLists)
 router.route('/').post(protect, getBoardMiddleware, isMemberinBoard, createList)
 

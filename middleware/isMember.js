@@ -11,7 +11,7 @@ exports.isMemberinBoard = asyncHandler(async (req, res, next) => {
     board.members.some((m) => m.userId.toString() === req.user.id)
 
   if (!isMember) {
-    return next(new ErrorResponse(`Not authorized to `, 403))
+    return next(new ErrorResponse(`Not authorized to acsess`, 403))
   }
 
   next()

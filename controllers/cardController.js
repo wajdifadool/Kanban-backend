@@ -6,6 +6,7 @@ const Card = require('../models/Card')
 // @route   GET /api/v1/cards
 // @route   GET /api/v1/boards/:boardId/lists/:listId/cards
 exports.getCards = asyncHandler(async (req, res, next) => {
+  console.log('get Cards callled ')
   const query = {}
 
   if (req.params.listId) query.listId = req.params.listId
@@ -167,6 +168,15 @@ exports.deleteComment = asyncHandler(async (req, res, next) => {
   await card.save()
 
   res.status(200).json({ success: true, data: {} })
+})
+
+// @desc get card comment
+exports.getComments = asyncHandler(async (req, res, next) => {
+  const card = await Card.findById(req.params.cardId)
+
+  if (!card) return next(new ErrorResponse('Card not found', 404))
+
+  res.status(200).json({ success: true, data: card.comments })
 })
 
 /* -------------------- TODO: Checklist -------------------- */
