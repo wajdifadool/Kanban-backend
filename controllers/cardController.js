@@ -1,6 +1,9 @@
 const asyncHandler = require('../middleware/async')
 const ErrorResponse = require('../utils/errorResponse')
 const Card = require('../models/Card')
+const fs = require('fs')
+const path = require('path')
+const Attachment = require('../models/Attachment')
 
 /* -------------------- Get all cards -------------------- */
 // @route   GET /api/v1/cards
@@ -33,12 +36,18 @@ exports.getCard = asyncHandler(async (req, res, next) => {
   res.status(200).json({ success: true, data: card })
 })
 
+/// @desc   Create card in list
+// @route   POST /api/v1/boards/:boardId/lists/:listId/cards
+// @access  Private
 /* -------------------- Create card -------------------- */
 exports.createCard = asyncHandler(async (req, res, next) => {
   const { boardId, listId } = req.params
   req.body.boardId = boardId || req.body.boardId
   req.body.listId = listId || req.body.listId
-
+  // console.log('userID', req.user._id.toString())
+  const userId = req.user._id.toString()
+  req.body.created_by = userId
+  req.body.assignees = req.body.assignees || [userId]
   if (!req.body.boardId || !req.body.listId)
     return next(new ErrorResponse('BoardId and ListId are required', 400))
 
@@ -221,4 +230,88 @@ exports.deleteChecklistItem = asyncHandler(async (req, res, next) => {
   await card.save()
 
   res.status(200).json({ success: true, data: card.checklist })
+})
+
+/* -------------------- TODO: File Uploading -------------------- */
+
+/// @desc   request upload (returns presigned URL and attachment id
+// @route   POST /api/v1/cards/:cardId/attachments
+// @access  Private
+exports.uploadFileToCard = asyncHandler(async (req, res, next) => {
+  const card = await Card.findOne({
+    _id: req.params.id,
+    $or: [{ created_by: req.user._id }, { assignees: req.user._id }],
+  })
+
+  if (!card)
+    return next(new ErrorResponse('Card not found or not authorized', 404))
+
+  // Check file existence
+  if (!req.files || !req.files.file) {
+    return next(new ErrorResponse('Please upload a file', 400))
+  }
+
+  const file = req.files.file
+
+  // Validate file type (you can extend this)
+  if (!file.mimetype.startsWith('image') && !file.mimetype.includes('pdf')) {
+    return next(new ErrorResponse(`Please upload an image or PDF file`, 400))
+  }
+
+  // Validate file size
+  if (file.size > process.env.FILE_UPLOAD_MAX) {
+    return next(
+      new ErrorResponse(
+        `Please upload file smaller than ${
+          process.env.FILE_UPLOAD_MAX / 1000000
+        }MB`,
+        400
+      )
+    )
+  }
+
+  // Ensure upload directory exists
+  const uploadPath = process.env.FILE_UPLOAD_PATH
+  if (!fs.existsSync(uploadPath)) {
+    fs.mkdirSync(uploadPath)
+  }
+
+  // Custom filename
+  const ext = path.parse(file.name).ext
+  const fileName = `card_${card._id}_${Date.now()}${ext}`
+  const filePath = path.join(uploadPath, fileName)
+
+  // Move file to upload folder
+  file.mv(filePath, async (err) => {
+    if (err) {
+      console.error(err)
+      return next(new ErrorResponse('Problem with file upload', 500))
+    }
+
+    // Prepare attachment object
+    // const attachmentObject = {
+    //   filename: fileName,
+    //   path: `/uploads/${fileName}`,
+    //   mimetype: file.mimetype,
+    //   size: file.size,
+    // }
+
+    const newAttachment = await Attachment.create({
+      fileUrl: `/uploads/${fileName}`, // relative path
+      fileName,
+      uploadedBy: req.user._id,
+      mimetype: file.mimetype,
+      size: file.size,
+      cardId: card._id,
+    })
+
+    // Add to card
+    card.attachments.push(newAttachment)
+    await card.save()
+
+    res.status(200).json({
+      success: true,
+      data: newAttachment,
+    })
+  })
 })

@@ -3,6 +3,7 @@ const dotenv = require('dotenv')
 const morgan = require('morgan')
 const cookieParser = require('cookie-parser')
 const fileUpload = require('express-fileupload')
+const path = require('path')
 const connectDB = require('./config/db')
 const errorHandler = require('./middleware/errorHandler')
 
@@ -18,8 +19,14 @@ connectDB()
 const app = express()
 app.use(express.json())
 app.use(cookieParser())
-app.use(fileUpload())
+app.use(fileUpload()) // for uploading files
 app.use(morgan('dev'))
+
+// Make upload folder static (to serve uploaded files)
+app.use(
+  '/uploads',
+  express.static(path.join(__dirname, process.env.FILE_UPLOAD_PATH))
+)
 
 /* ---- Routes ---- */
 app.use('/api/v1/auth', authRoutes)

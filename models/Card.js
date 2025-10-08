@@ -26,14 +26,7 @@ const CardSchema = new mongoose.Schema(
     // labels: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Label' }],
 
     assignees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    attachments: [
-      {
-        fileUrl: String,
-        fileName: String,
-        uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        uploadedAt: { type: Date, default: Date.now },
-      },
-    ],
+    attachments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Attachment' }],
     checklist: [
       {
         text: String,
@@ -57,6 +50,10 @@ const CardSchema = new mongoose.Schema(
     updatedAt: {
       type: Date,
       default: Date.now,
+    },
+    created_by: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
     },
   },
   { timestamps: true }

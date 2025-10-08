@@ -9,6 +9,7 @@ const {
   addComment,
   deleteComment,
   updateComment,
+  uploadFileToCard,
   getComments,
   addChecklistItem,
   toggleChecklistItem,
@@ -47,6 +48,8 @@ router
   .put(protect, updateCard)
   .delete(protect, deleteCard)
 
+router.route('/:id/attachments').post(protect, uploadFileToCard)
+
 router.post('/:cardId/duplicate', protect, duplicateCard)
 
 // @route   POST /api/v1/cards/:cardId/duplicate
@@ -82,4 +85,5 @@ router.route('/:cardId/checklist/:itemId').put(protect, toggleChecklistItem)
 // @access  Private
 router.route('/:cardId/checklist/:itemId').delete(protect, deleteChecklistItem)
 
+// uploading file
 module.exports = router
