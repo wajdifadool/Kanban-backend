@@ -19,4 +19,4 @@ ENV NODE_ENV=production
 COPY --from=build /app . 
 EXPOSE 4000
 # Use environment PORT if set by the platform; fallback to 4000 in code
-CMD ["node", "src/index.js"]
+CMD ["node", "server.js"]
