@@ -1,3 +1,17 @@
+/*
+Common stages:
+
+$match: filter documents
+
+$lookup: perform a join with another collection
+
+$project: shape the output (select/omit fields)
+
+$group: group and aggregate (like SQL GROUP BY)
+
+$sort, $limit, $skip: for pagination
+
+*/
 const asyncHandler = require('../middleware/async')
 const ErrorResponse = require('../utils/errorResponse')
 const Card = require('../models/Card')
@@ -318,5 +332,46 @@ exports.uploadFileToCard = asyncHandler(async (req, res, next) => {
       success: true,
       data: newAttachment,
     })
+  })
+})
+
+// @desc    Remove the attachment from card
+// @route   DELETE/api/v1/cards/:cardId/attachments/:attachmentId
+// @access  Private
+exports.deleteAttachment = asyncHandler(async (req, res, next) => {
+  // TODO:maby this should be the middleware where we get the card each time
+  const { cardId, attachmentId } = req.params
+
+  const card = await Card.findOne({
+    _id: req.params.id,
+    $or: [{ created_by: req.user._id }, { assignees: req.user._id }],
+  })
+
+  if (!card)
+    return next(new ErrorResponse('Card not found or not authorized', 404))
+
+  const attachment = await Attachment.findOne({
+    _id: attachmentId,
+    cardId: card._id,
+  })
+
+  if (!attachment) return next(new ErrorResponse('Attachment not found', 404))
+
+  // remove the file
+  const fullPath = path.join(process.env.FILE_UPLOAD_PATH, attachment.fileName)
+
+  if (fs.existsSync(fullPath)) {
+    fs.unlink(fullPath, (err) => {
+      if (err) console.log(`error deleting file ${fullPath} , error: ${err}`)
+    })
+  }
+
+  // delete from DB
+  card.attachments.pull(attachmentId)
+  await card.save()
+
+  res.status(200).json({
+    success: true,
+    data: {},
   })
 })

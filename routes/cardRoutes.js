@@ -9,6 +9,7 @@ const {
   deleteComment,
   updateComment,
   uploadFileToCard,
+  deleteAttachment,
   getComments,
   addChecklistItem,
   toggleChecklistItem,
@@ -40,6 +41,7 @@ router
 router.post('/:cardId/duplicate', protect, duplicateCard)
 
 router.route('/:id/attachments').post(protect, uploadFileToCard)
+router.route('/:id/attachments/:attachmentId').delete(protect, deleteAttachment)
 
 /* ---------------------- Nested Routes: Checklist ---------------------- */
 
