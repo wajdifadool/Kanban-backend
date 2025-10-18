@@ -1,0 +1,15 @@
+ 
+node_modules/
+npm-debug.log
+/config/.env
+build/
+dist/
+coverage/
+*.log
+*.tgz
+.DS_Store
+/uploads
+.git
+.vscode
+.idea
+
