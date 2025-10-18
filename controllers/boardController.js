@@ -2,7 +2,7 @@ const Board = require('../models/Board')
 const ErrorResponse = require('../utils/errorResponse')
 const asyncHandler = require('../middleware/async')
 
-/// @desc   Get all boards of logged-in user
+// @desc    Get all boards of logged-in user
 // @route   GET /api/v1/boards
 // @access  Private
 exports.getBoards = asyncHandler(async (req, res, next) => {
@@ -28,7 +28,7 @@ exports.getBoards = asyncHandler(async (req, res, next) => {
   })
 })
 
-/// @desc   Create new board
+// @desc    Create new board
 // @route   POST /api/v1/boards
 // @access  Private
 exports.createBoard = asyncHandler(async (req, res, next) => {
@@ -83,7 +83,7 @@ exports.createBoard = asyncHandler(async (req, res, next) => {
     }
 }
 */
-/// @desc   Get single board by ID
+// @desc    Get single board by ID
 // @route   GET /api/v1/boards/:id
 // @access  Private
 exports.getBoard = asyncHandler(async (req, res, next) => {
@@ -122,7 +122,7 @@ exports.getBoard = asyncHandler(async (req, res, next) => {
   })
 })
 
-/// @desc   Update board
+// @desc    Update board
 // @route   PUT /api/v1/boards/:id
 // @access  Private (Only owner can update Board)
 exports.updateBoard = asyncHandler(async (req, res, next) => {
@@ -143,7 +143,7 @@ exports.updateBoard = asyncHandler(async (req, res, next) => {
   })
 })
 
-/// @desc   Delete board
+// @desc    Delete board
 // @route   DELETE /api/v1/boards/:id
 // @access  Private (Only owner can delete Board)
 exports.deleteBoard = asyncHandler(async (req, res, next) => {

@@ -1,6 +1,7 @@
 // middleware/getList.js
 
 const List = require('../models/List')
+const Card = require('../models/Card')
 
 const ErrorResponse = require('../utils/errorResponse')
 const asyncHandler = require('../middleware/async')
@@ -15,5 +16,17 @@ exports.getListMiddleware = asyncHandler(async (req, res, next) => {
 
   req.list = list // attach to req for next handlers
   console.log(list)
+  next()
+})
+
+exports.getCardsForListMiddleware = asyncHandler(async (req, res, next) => {
+  const listId = req.list._id
+
+  const cards = await Card.find({ listId }).sort({ position: 1 }) // Optional: sort by position or createdAt
+
+  req.list = req.list.toObject() // Convert from Mongoose Document to plain JS object to add `cards`
+
+  req.list.cards = cards // Inject cards into the list object
+
   next()
 })

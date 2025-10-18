@@ -5,25 +5,9 @@ const fs = require('fs')
 const path = require('path')
 const Attachment = require('../models/Attachment')
 
-/* -------------------- Get all cards -------------------- */
-// @route   GET /api/v1/cards
-// @route   GET /api/v1/boards/:boardId/lists/:listId/cards
-exports.getCards = asyncHandler(async (req, res, next) => {
-  console.log('get Cards callled ')
-  const query = {}
-
-  if (req.params.listId) query.listId = req.params.listId
-  if (req.params.boardId) query.boardId = req.params.boardId
-
-  const cards = await Card.find(query)
-    .populate('assignees', 'name email')
-    // .populate('labels', 'name color') //TODO: fix the label
-    .sort({ position: 1 })
-
-  res.status(200).json({ success: true, count: cards.length, data: cards })
-})
-
-/* -------------------- Get single card -------------------- */
+// @desc    Get single card
+// @route   GET /api/v1/cards/:cardId
+// @access  Private
 exports.getCard = asyncHandler(async (req, res, next) => {
   const card = await Card.findById(req.params.id).populate(
     'assignees',
@@ -36,18 +20,16 @@ exports.getCard = asyncHandler(async (req, res, next) => {
   res.status(200).json({ success: true, data: card })
 })
 
-/// @desc   Create card in list
-// @route   POST /api/v1/boards/:boardId/lists/:listId/cards
+// @desc    Create card in list
+// @route   POST /api/v1/cards
 // @access  Private
-/* -------------------- Create card -------------------- */
 exports.createCard = asyncHandler(async (req, res, next) => {
-  const { boardId, listId } = req.params
-  req.body.boardId = boardId || req.body.boardId
-  req.body.listId = listId || req.body.listId
-  // console.log('userID', req.user._id.toString())
+  // TODO:make sure the user have access to the board!
   const userId = req.user._id.toString()
+
   req.body.created_by = userId
   req.body.assignees = req.body.assignees || [userId]
+
   if (!req.body.boardId || !req.body.listId)
     return next(new ErrorResponse('BoardId and ListId are required', 400))
 
@@ -56,8 +38,12 @@ exports.createCard = asyncHandler(async (req, res, next) => {
   res.status(201).json({ success: true, data: card })
 })
 
-/* -------------------- Update card -------------------- */
+// @desc    Update card
+// @route   PUT /api/v1/cards/:cardId
+// @access  Private
 exports.updateCard = asyncHandler(async (req, res, next) => {
+  // TODO:make sure the user have access to the CARD!
+
   let card = await Card.findById(req.params.id)
   if (!card) return next(new ErrorResponse('Card not found', 404))
 
@@ -69,7 +55,18 @@ exports.updateCard = asyncHandler(async (req, res, next) => {
   res.status(200).json({ success: true, data: card })
 })
 
-/* -------------------- Duplicate card -------------------- */
+// @desc    Delete card
+// @route   DELETE /api/v1/cards/:cardId
+// @access  Private
+/* -------------------- Delete card -------------------- */
+exports.deleteCard = asyncHandler(async (req, res, next) => {
+  const card = await Card.findById(req.params.id)
+  if (!card) return next(new ErrorResponse('Card not found', 404))
+
+  await card.deleteOne()
+  res.status(200).json({ success: true, data: {} })
+})
+
 // @desc    Duplicate a card
 // @route   POST /api/v1/cards/:cardId/duplicate
 // @access  Private
@@ -103,18 +100,14 @@ exports.duplicateCard = asyncHandler(async (req, res, next) => {
   })
 })
 
-/* -------------------- Delete card -------------------- */
-exports.deleteCard = asyncHandler(async (req, res, next) => {
-  const card = await Card.findById(req.params.id)
-  if (!card) return next(new ErrorResponse('Card not found', 404))
+/*___ ___  _ __ ___  _ __ ___   ___ _ __ | |_ ___ 
+ / __/ _ \| '_ ` _ \| '_ ` _ \ / _ \ '_ \| __/ __|
+| (_| (_) | | | | | | | | | | |  __/ | | | |_\__ \
+ \___\___/|_| |_| |_|_| |_| |_|\___|_| |_|\__|___*/
 
-  await card.deleteOne()
-  res.status(200).json({ success: true, data: {} })
-})
-
-/* -------------------- Comments -------------------- */
-
-// @desc Add comment
+// @desc    Add comment to card
+// @route   POST /api/v1/cards/:cardId/comments
+// @access  Private
 exports.addComment = asyncHandler(async (req, res, next) => {
   const card = await Card.findById(req.params.cardId)
   if (!card) return next(new ErrorResponse('Card not found', 404))
@@ -136,16 +129,20 @@ exports.addComment = asyncHandler(async (req, res, next) => {
   })
 })
 
-// @desc Update comment
-//  TODO: Comment Creator only aothrized to delete/ update its comments
+// @desc    Update comment in card
+// @route   PUT /api/v1/cards/:cardId/comments/:commentId
+// @access  Private
 exports.updateComment = asyncHandler(async (req, res, next) => {
+  //  TODO: Comment Creator only aothrized to delete/ update its comments
+
   const card = await Card.findById(req.params.cardId)
   if (!card) return next(new ErrorResponse('Card not found', 404))
-
   // Mongoose DocumentArray waprer methods, subDocumnets
   // .id(_id) → find a subdocument by its _id
   // .create() → create a subdocument with default schema rules
   // .pull() → remove a subdocument by ID or value
+
+  // TODO:cehck if the commet is there before deleteion
   const comment = card.comments.id(req.params.commentId)
 
   //   vanila JS
@@ -161,10 +158,15 @@ exports.updateComment = asyncHandler(async (req, res, next) => {
   })
 })
 
-// @desc Delete comment
+// @desc    Delete comment in card
+// @route   DELETE /api/v1/cards/:cardId/comments/:commentId
+// @access  Private
 exports.deleteComment = asyncHandler(async (req, res, next) => {
+  // TODO:make sure only creator can delete commment!
   const card = await Card.findById(req.params.cardId)
   if (!card) return next(new ErrorResponse('Card not found', 404))
+
+  // TODO:make sure only creator can delete commment!
 
   // Monogoose Way
   card.comments.pull(req.params.commentId)
@@ -179,7 +181,9 @@ exports.deleteComment = asyncHandler(async (req, res, next) => {
   res.status(200).json({ success: true, data: {} })
 })
 
-// @desc get card comment
+// @desc    Get all comments for card
+// @route   GET /api/v1/cards/:cardId/comments/:commentId
+// @access  Private
 exports.getComments = asyncHandler(async (req, res, next) => {
   const card = await Card.findById(req.params.cardId)
 
@@ -234,10 +238,11 @@ exports.deleteChecklistItem = asyncHandler(async (req, res, next) => {
 
 /* -------------------- TODO: File Uploading -------------------- */
 
-/// @desc   request upload (returns presigned URL and attachment id
+// @desc    request upload (returns presigned URL and attachment id
 // @route   POST /api/v1/cards/:cardId/attachments
 // @access  Private
 exports.uploadFileToCard = asyncHandler(async (req, res, next) => {
+  // TODO:maby this should be the middleware where we get the card each time
   const card = await Card.findOne({
     _id: req.params.id,
     $or: [{ created_by: req.user._id }, { assignees: req.user._id }],

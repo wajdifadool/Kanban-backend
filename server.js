@@ -35,7 +35,6 @@ app.use('/api/v1/boards/:boardId/lists', listRoutes)
 app.use('/api/v1/lists', listRoutes)
 
 app.use('/api/v1/cards', cardRoutes)
-app.use('/api/v1/boards/:boardId/lists/:listId/cards', cardRoutes)
 
 app.use(errorHandler)
 

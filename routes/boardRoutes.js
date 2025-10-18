@@ -7,8 +7,8 @@ const {
   updateBoard,
 } = require('../controllers/boardController')
 const { protect } = require('../middleware/auth')
-const { checkAccess } = require('../middleware/checkAccess')
-const { authorizeBoardAccess } = require('../middleware/authorizeBoardAccess')
+const { checkAccess } = require('../middleware/checkAccess') //TODO:
+const { authorizeBoardAccess } = require('../middleware/authorizeBoardAccess') //TODO:S
 const router = express.Router()
 
 router.route('/').get(protect, getBoards)

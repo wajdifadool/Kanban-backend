@@ -3,7 +3,7 @@ const List = require('../models/List')
 const ErrorResponse = require('../utils/errorResponse')
 const asyncHandler = require('../middleware/async')
 
-/// @desc   Get all lists for a board
+// @desc    Get all lists for a board
 // @route   GET /api/v1/boards/:boardId/lists
 // @access  Private
 exports.getLists = asyncHandler(async (req, res, next) => {
@@ -18,7 +18,7 @@ exports.getLists = asyncHandler(async (req, res, next) => {
   })
 })
 
-/// @desc   Get single list
+// @desc    Get single list
 // @route   GET /api/v1/lists/:id
 // @access  Private
 exports.getList = asyncHandler(async (req, res, next) => {
@@ -28,7 +28,7 @@ exports.getList = asyncHandler(async (req, res, next) => {
   })
 })
 
-/// @desc   Create new list in a board
+// @desc    Create new list in a board
 // @route   POST /api/v1/boards/:boardId/lists
 // @access  Private
 exports.createList = asyncHandler(async (req, res, next) => {
@@ -51,12 +51,12 @@ exports.createList = asyncHandler(async (req, res, next) => {
   })
 })
 
-/// @desc   Update list
+// @desc    Update list
 // @route   PUT /api/v1/lists/:id
 // @access  Private
-// TODO: consider update the whole body
-//     { $set: req.body },
 exports.updateList = asyncHandler(async (req, res, next) => {
+  // TODO: consider update the whole body
+  //     { $set: req.body },
   const fieldsToUpdate = {
     title: req.body.title || req.list.title,
     position: req.body.position ?? req.list.position,
@@ -74,7 +74,7 @@ exports.updateList = asyncHandler(async (req, res, next) => {
   })
 })
 
-/// @desc   Delete list
+// @desc    Delete list
 // @route   DELETE /api/v1/lists/:id
 // @access  Private
 exports.deleteList = asyncHandler(async (req, res, next) => {
