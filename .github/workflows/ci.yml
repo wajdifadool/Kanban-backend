@@ -12,6 +12,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest # Use the latest Ubuntu runner (virtual machine)
+    env:
+      FILE_UPLOAD_PATH: ./uploads # set the env var here
 
     steps:
       # Step 1: Checkout your repository code into the runner
