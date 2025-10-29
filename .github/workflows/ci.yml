@@ -11,16 +11,15 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest # Use the latest Ubuntu runner (virtual machine)  
+    runs-on: ubuntu-latest # Use the latest Ubuntu runner (virtual machine)
     environment: env1
 
     env:
-    FILE_UPLOAD_PATH: ./uploads 
+      FILE_UPLOAD_PATH: ./uploads
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       JWT_EXPIRE: ${{ secrets.JWT_EXPIRE }}
       JWT_COOKIE_EXPIRE: ${{ secrets.JWT_COOKIE_EXPIRE }}
-      
-      
+
     steps:
       # Step 1: Checkout your repository code into the runner
       - name: Checkout repository
