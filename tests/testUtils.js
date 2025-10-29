@@ -3,7 +3,7 @@ const app = require('../app')
 
 exports.registerAndLogin = async (email, password = 'pass1234') => {
   await request(app).post('/api/v1/auth/register').send({
-    name: 'Test',
+    name: 'User',
     email,
     password,
   })
