@@ -7,15 +7,14 @@ const asyncHandler = require('../middleware/async')
 
 // @desc    Register user
 // @route   GET /api/v1/auth/register
-// @access  Publicס
+// @access  Public
 exports.registerUser = asyncHandler(async (req, res, next) => {
-  const { name, email, password, role } = req.body
-  //create user
+  const { name, email, password, avatarUrl } = req.body
   const user = await User.create({
     name,
     email,
     password,
-    role,
+    avatarUrl,
   })
 
   sendTokenResponse(user, 200, res) // send a token in the cookie

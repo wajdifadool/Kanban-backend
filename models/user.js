@@ -28,6 +28,7 @@ const UserSchema = new mongoose.Schema(
 
     avatarUrl: {
       type: String,
+      default: 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
     },
 
     createdAt: {
@@ -45,7 +46,7 @@ const UserSchema = new mongoose.Schema(
 
 // 🔐 Encrypt password before save
 UserSchema.pre('save', async function (next) {
-  console.log("called UserSchema.pre('save') ")
+  // console.log("called UserSchema.pre('save') ")
   if (!this.isModified('password')) return next()
   const salt = await bcrypt.genSalt(10)
   this.password = await bcrypt.hash(this.password, salt)
