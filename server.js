@@ -1,11 +1,19 @@
 const express = require('express')
 const dotenv = require('dotenv')
+dotenv.config({ path: './config/.env' })
+
 const morgan = require('morgan')
 const cookieParser = require('cookie-parser')
 const fileUpload = require('express-fileupload')
 const path = require('path')
 const connectDB = require('./config/db')
 const errorHandler = require('./middleware/errorHandler')
+const app = express()
+const passport = require('passport') // For google auth
+
+require('./passport') // must be before passport.use()
+
+app.use(passport.initialize())
 
 // Routes
 const authRoutes = require('./routes/auth')
@@ -13,10 +21,8 @@ const boardRoutes = require('./routes/boardRoutes')
 const listRoutes = require('./routes/listRoutes')
 const cardRoutes = require('./routes/cardRoutes')
 
-dotenv.config({ path: './config/.env' })
 connectDB()
 
-const app = express()
 app.use(express.json())
 app.use(cookieParser())
 app.use(fileUpload()) // for uploading files
