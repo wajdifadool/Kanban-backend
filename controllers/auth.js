@@ -2,8 +2,9 @@ const User = require('../models/user')
 const crypto = require('crypto')
 const ErrorResponse = require('../utils/errorResponse')
 const asyncHandler = require('../middleware/async')
+const sendEmail = require('../utils/sendEmail')
 
-// const passport = require('passport')
+const passport = require('passport')
 
 // @desc    Register user
 // @route   GET /api/v1/auth/register
@@ -86,10 +87,10 @@ exports.getMe = asyncHandler(async (req, res, next) => {
 // @route     PUT /api/v1/auth/updatedetails
 // @access    Private
 exports.updateDetails = asyncHandler(async (req, res, next) => {
-  // TODO: add validation to email before update
   const fieldsToUpdate = {
     name: req.body.name,
     email: req.body.email,
+    avatarUrl: req.body.avatarUrl,
   }
 
   const user = await User.findByIdAndUpdate(req.user.id, fieldsToUpdate, {
@@ -123,7 +124,6 @@ exports.updatePassword = asyncHandler(async (req, res, next) => {
 // @desc      Forgot password
 // @route     POST /api/v1/auth/forgotpassword
 // @access    Public
-// TODO:
 exports.forgetpassword = asyncHandler(async (req, res, next) => {
   const user = await User.findOne({ email: req.body.email })
 
@@ -133,13 +133,13 @@ exports.forgetpassword = asyncHandler(async (req, res, next) => {
 
   // Get reset token
   const resetToken = user.getResetPasswordToken()
-
   await user.save({ validateBeforeSave: false })
 
   // Create reset url
-  const resetUrl = `${req.protocol}://${req.get(
-    'host'
-  )}/api/v1/auth/resetpassword/${resetToken}`
+  // const resetUrl = `${req.protocol}://${req.get(
+  //   'host'
+  // )}$${API}/auth/resetpassword/${resetToken}`
+  const resetUrl = `/auth/resetpassword/${resetToken}`
 
   const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please make a PUT request to: \n\n ${resetUrl}`
 
@@ -167,8 +167,6 @@ exports.forgetpassword = asyncHandler(async (req, res, next) => {
 // @access  Public
 // TODO:
 exports.resetPassword = asyncHandler(async (req, res, next) => {
-  // we have accses to req.user via the protect middleware
-
   // get the token and hashed it so we can comapare waht ever in the data base
   const resetPasswordToken = crypto
     .createHash('sha256')
@@ -197,54 +195,49 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
   sendTokenResponse(user, 200, res)
 })
 
-// // @desc    redirect to google Auth page
-// // @route   GET /auth/google/login
-// // @access  Public
-// exports.googleAuthRedirect = asyncHandler(async (req, res, next) => {
-//   res.send(
-//     '<a href="http://localhost:5000/api/v1/auth/google">Authintiate with Google</a>'
-//   )
-//   // res.redirect('/api/v1/auth/google')
-// })
+// @desc    1 : Will redirect to google Auth page
+// @route   GET /auth/google/login
+// @access  Public
+exports.googleAuthRedirect = asyncHandler(async (req, res, next) => {
+  res.send(
+    '<a href="http://localhost:5000/api/v1/auth/google">Authintiate with Google</a>'
+  )
+  // res.redirect('/api/v1/auth/google')
+})
 
-// exports.googleAuthRequest = passport.authenticate('google', {
-//   scope: ['profile', 'email'],
-// })
+// @desc    googleAuthRequest(the google aut page)
+// @route   GET /auth/google/
+// @access  Public
+exports.googleAuthRequest = passport.authenticate('google', {
+  scope: ['profile', 'email'],
+})
 
-// // @desc    Handle authentication callback from google services
-// // @route   GET /api/v1/auth/google/callback
-// // @access  Public
-// exports.googleAuthCallback = (req, res, next) => {
-//   passport.authenticate('google', { session: false }, async (err, data) => {
-//     if (err || !data || !data.user) {
-//       return res.redirect('/auth/failure')
-//     }
+// @desc    Handle authentication callback from google services
+// @route   GET /api/v1/auth/google/callback
+// @access  Public
+exports.googleAuthCallback = (req, res, next) => {
+  passport.authenticate('google', { session: false }, async (err, data) => {
+    if (err || !data || !data.user) {
+      return res.redirect('/auth/failure')
+    }
 
-//     const user = data.user
-//     const token = user.getSignedJwtToken()
+    const user = data.user
 
-//     res.status(200).json({
-//       success: true,
-//       message: 'Authenticated with Google',
-//       token,
-//       user: {
-//         id: user._id,
-//         name: user.name,
-//         email: user.email,
-//         photo: user.photo,
-//         role: user.role,
-//       },
-//     })
-//   })(req, res, next)
-// }
+    const token = user.getSignedJwtToken()
 
-// // @desc   Logout
-// // @route  GET /api/v1/auth/logout
-// exports.logout = (req, res) => {
-//   req.logout(() => {
-//     res.status(200).json({ success: true, message: 'Logged out' })
-//   })
-// }
+    res.status(200).json({
+      success: true,
+      message: 'Authenticated with Google',
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+      },
+    })
+  })(req, res, next)
+}
 
 // get token from model, create cookie and send response
 const sendTokenResponse = (user, statusCode, res) => {
