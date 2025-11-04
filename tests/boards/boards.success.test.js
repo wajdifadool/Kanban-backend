@@ -59,7 +59,7 @@ describe('Boards - Success Scenarios', () => {
     expect(res_board.body.data.title).toBe(new_board_name)
   })
 
-  it('should remove a board', async () => {
+  it('should delete a board', async () => {
     // Add first
 
     const res = await request(app)

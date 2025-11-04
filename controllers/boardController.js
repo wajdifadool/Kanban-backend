@@ -1,4 +1,5 @@
 const Board = require('../models/Board')
+const User = require('../models/user')
 const ErrorResponse = require('../utils/errorResponse')
 const asyncHandler = require('../middleware/async')
 
@@ -7,11 +8,8 @@ const asyncHandler = require('../middleware/async')
 // @access  Private
 exports.getBoards = asyncHandler(async (req, res, next) => {
   // find boards where user is owner OR a member
-  // console.log(req.user.id)
-  // console.log(req.user.id)
   const boards = await Board.find({
     $or: [{ owner: req.user.id }, { 'members.userId': req.user.id }],
-    // will get all boards where in the table of boards it have the user.id as the owner or the user.id is in the members array in the table
   })
     .populate('owner', 'name email')
     .populate('members.userId', 'name email')
@@ -34,10 +32,6 @@ exports.getBoards = asyncHandler(async (req, res, next) => {
 exports.createBoard = asyncHandler(async (req, res, next) => {
   const { title, description, labels } = req.body
 
-  if (!title) {
-    return next(new ErrorResponse('Please provide a board title', 400))
-  }
-
   //   const defaultLabels = [
   //     { name: 'none', color: '#EB5A46' },
   //     { name: 'none', color: '#0079BF' },
@@ -59,66 +53,13 @@ exports.createBoard = asyncHandler(async (req, res, next) => {
   })
 })
 
-/*
-{
-    "success": true,
-    "data": {
-        "is_private": true,
-        "is_active": true,
-        "_id": "68e215b226f953da6caecd30",
-        "title": "main board Version 1 ",
-        "owner": "68dfe916a6e211bad9669d13",
-        "members": [
-            {
-                "userId": "68dfe916a6e211bad9669d13",
-                "role": "admin",
-                "_id": "68e215b226f953da6caecd31"
-            }
-        ],
-        "labels": [],
-        "createdAt": "2025-10-05T06:52:34.362Z",
-        "updatedAt": "2025-10-07T08:50:19.850Z",
-        "__v": 0,
-        "description": "this is description for the main board"
-    }
-}
-*/
 // @desc    Get single board by ID
 // @route   GET /api/v1/boards/:id
 // @access  Private
 exports.getBoard = asyncHandler(async (req, res, next) => {
-  console.log('called get board')
-  // TODO: add indexing for faster request, add reddis , add cookies
-  const board = await Board.findOne({
-    _id: req.params.id,
-    $or: [{ owner: req.user.id }, { 'members.userId': req.user.id }],
-  })
-  // .populate('owner', 'name email')
-  // .populate('members.userId', 'name email')
-
-  // const board = await Board.findById(req.params.id)
-  //   .populate('owner', 'name email')
-  //   .populate('members.userId', 'name email')
-
-  // if (!board) {
-  //   return next(
-  //     new ErrorResponse(`Board not found with id ${req.params.id}`, 404)
-  //   )
-  // }
-
-  // check if user is owner or member
-  // const isMember =
-  //   board.owner._id.equals(req.user.id) ||
-  //   board.members.some((m) => m.userId._id.equals(req.user.id))
-
-  // TODO: maby remove to middleware
-  // if (!isMember) {
-  //   return next(new ErrorResponse('Not authorized to view this board', 403))
-  // }
-
   res.status(200).json({
     success: true,
-    data: board,
+    data: req.board,
   })
 })
 
@@ -126,15 +67,17 @@ exports.getBoard = asyncHandler(async (req, res, next) => {
 // @route   PUT /api/v1/boards/:id
 // @access  Private (Only owner can update Board)
 exports.updateBoard = asyncHandler(async (req, res, next) => {
-  // Fetch Board and make user
-  let board = await Board.findOne({
-    _id: req.params.id,
-    owner: req.user.id,
-  })
+  const board = req.board
 
   board.title = req.body.title || board.title
   board.description = req.body.description || board.description
   board.labels = req.body.labels || board.labels
+
+  // Only update is_private if it's explicitly provided
+  // this will change the board visibility
+  if (typeof req.body.is_private !== 'undefined') {
+    board.is_private = req.body.is_private
+  }
 
   await board.save()
   res.status(200).json({
@@ -147,13 +90,76 @@ exports.updateBoard = asyncHandler(async (req, res, next) => {
 // @route   DELETE /api/v1/boards/:id
 // @access  Private (Only owner can delete Board)
 exports.deleteBoard = asyncHandler(async (req, res, next) => {
-  let board = await Board.findOne({
-    _id: req.params.id,
-    owner: req.user.id,
-  })
-  await board.deleteOne()
+  await req.board.deleteOne()
   res.status(200).json({
     success: true,
     message: 'Board deleted successfully',
+  })
+})
+
+// @desc    Add member to board
+// @route   POST /api/v1/boards/:id/members
+// @access  Private (Owner only)
+exports.addMember = asyncHandler(async (req, res, next) => {
+  const memberId = req.body.memberId
+  const board = req.board
+  const ownerId = req.board.owner.toString()
+
+  console.log(memberId)
+  console.log(ownerId)
+
+  if (ownerId === memberId) {
+    return next(new ErrorResponse('Owner already  is memeber', 400))
+  }
+  const userExists = await User.exists({ _id: memberId })
+  if (!userExists) {
+    return next(new ErrorResponse('User not found', 400))
+  }
+
+  const isMember = board.members.some((m) => m.userId.toString() === memberId)
+  if (isMember) {
+    return next(new ErrorResponse('User already a member', 400))
+  }
+
+  req.board.members.push({ userId: memberId, role: 'editor' })
+
+  await board.save()
+  res.status(200).json({
+    success: true,
+    data: board,
+  })
+})
+
+// @desc    Remove member from  board
+// @route   DELETE /api/v1/boards/:id/members
+// @access  Private (Owner only)
+exports.removeMember = asyncHandler(async (req, res, next) => {
+  const memberId = req.body.memberId
+  const board = req.board
+  const ownerId = req.board.owner.toString()
+
+  if (!memberId) {
+    return next(new ErrorResponse('Collaborator ID is required', 400))
+  }
+
+  if (ownerId === memberId) {
+    return next(new ErrorResponse('Cannot remove the board owner', 400))
+  }
+
+  const memberIndex = board.members.findIndex(
+    (m) => m.userId.toString() === memberId
+  )
+
+  if (memberIndex === -1) {
+    return next(new ErrorResponse('User is not a collaborator', 404))
+  }
+
+  board.members.splice(memberIndex, 1)
+
+  await board.save()
+
+  res.status(200).json({
+    success: true,
+    data: board,
   })
 })
