@@ -31,19 +31,19 @@ exports.checkAccess = (
 }
 
 // @desc    Get single board by ID
-// @route   GET /api/v1/boards/:id
+// @route   GET /api/v1/boards/:boardId
 // @access  Private
 exports.fetchBoard = asyncHandler(async (req, res, next) => {
   // TODO: add indexing for faster request, add reddis , add cookies
   const board = await Board.findOne({
-    _id: req.params.id,
+    _id: req.params.boardId,
     $or: [{ owner: req.user.id }, { 'members.userId': req.user.id }],
   })
 
   if (!board) {
     return next(
       new ErrorResponse(
-        `Board not found with id ${req.params.id}or the user have no access to board`,
+        `Board not found with id ${req.params.boardId}or the user have no access to board`,
         404
       ) //TODO: beeter response !
     )

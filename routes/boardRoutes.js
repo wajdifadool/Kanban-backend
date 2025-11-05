@@ -28,7 +28,7 @@ router
   .post(createBoard)
 
 router
-  .route('/:id')
+  .route('/:boardId')
   .get(
     fetchBoard,
     checkAccess({ allowOwner: true, allowCollaborator: true }),
@@ -49,7 +49,7 @@ router
 // ✅ Board Members
 // -------------------------------
 router
-  .route('/:id/members')
+  .route('/:boardId/members')
   .post(
     fetchBoard,
     checkAccess({ allowOwner: true, allowCollaborator: true }),
