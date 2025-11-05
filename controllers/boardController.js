@@ -87,7 +87,7 @@ exports.updateBoard = asyncHandler(async (req, res, next) => {
 })
 
 // @desc    Delete board
-// @route   DELETE /api/v1/boards/:id
+// @route   DELETE /api/v1/boards/:boardId
 // @access  Private (Only owner can delete Board)
 exports.deleteBoard = asyncHandler(async (req, res, next) => {
   await req.board.deleteOne()
@@ -98,7 +98,7 @@ exports.deleteBoard = asyncHandler(async (req, res, next) => {
 })
 
 // @desc    Add member to board
-// @route   POST /api/v1/boards/:id/members
+// @route   POST /api/v1/boards/:boardId/members
 // @access  Private (Owner only)
 exports.addMember = asyncHandler(async (req, res, next) => {
   const memberId = req.body.memberId

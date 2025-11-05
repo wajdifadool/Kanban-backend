@@ -1,65 +1,47 @@
 const express = require('express')
+const router = express.Router({ mergeParams: true })
+const { protect } = require('../middleware/auth')
+const { fetchBoard, checkAccess } = require('../middleware/boardMiddleware')
+
 const {
   getLists,
   getList,
   createList,
   updateList,
   deleteList,
+  getListWithCards,
 } = require('../controllers/listController')
 
-const { protect } = require('../middleware/auth')
-const {
-  getListMiddleware,
-  getCardsForListMiddleware,
-} = require('../middleware/getListMiddleware')
+router.use(protect, fetchBoard) //all routes below require authentication
 
-const { getBoardMiddleware } = require('../middleware/getBoardMiddleware')
-
-const { verifyBoardMember } = require('../middleware/verifyBoardAccess')
-const { isMemberinBoard } = require('../middleware/isMember')
-// mergeParams: true → allows us to access params from parent routes
-// Example: if mounted under /api/v1/boards/:boardId/lists
-// we can access req.params.boardId inside these routes
-const router = express.Router({ mergeParams: true })
-
-// @routes   GET, POST /api/v1/boards/:boardId/lists
-router.route('/').get(protect, getBoardMiddleware, isMemberinBoard, getLists)
-router.route('/').post(protect, getBoardMiddleware, isMemberinBoard, createList)
-/*
-TODO: Enahnce repsonse message 
-*/
-
-// @routes   GET, DELETE, PUT  /api/v1/lists/:id
+// -------------------------------
+// ✅ api/v1/boards/:boardId/lists
+// -------------------------------
 router
-  .route('/:id')
-  .get(protect, getListMiddleware, verifyBoardMember('view this list'), getList)
+  .route('/')
+  .get(checkAccess({ allowOwner: true, allowCollaborator: true }), getLists)
+  .post(checkAccess({ allowOwner: true, allowCollaborator: true }), createList)
 
+// -------------------------------
+// ✅ api/v1/boards/:boardId/lists/:listId
+// -------------------------------
 router
-  .route('/:id/cards')
-  .get(
-    protect,
-    getListMiddleware,
-    getCardsForListMiddleware,
-    verifyBoardMember('view this list'),
-    getList
-  )
-
-router
-  .route('/:id')
-  .put(
-    protect,
-    getListMiddleware,
-    verifyBoardMember('update this list'),
-    updateList
-  )
-
-router
-  .route('/:id')
+  .route('/:listId')
+  .get(checkAccess({ allowOwner: true, allowCollaborator: true }), getList)
+  .put(checkAccess({ allowOwner: true, allowCollaborator: true }), updateList)
   .delete(
-    protect,
-    getListMiddleware,
-    verifyBoardMember('delete this list'),
+    checkAccess({ allowOwner: true, allowCollaborator: false }),
     deleteList
+  )
+
+// -------------------------------
+// ✅ api/v1/boards/:boardId/lists/:listId/cards
+// -------------------------------
+router
+  .route('/:listId/cards')
+  .get(
+    checkAccess({ allowOwner: true, allowCollaborator: true }),
+    getListWithCards
   )
 
 module.exports = router

@@ -37,6 +37,7 @@ app.use(
 /* ---- Routes ---- */
 app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/boards', boardRoutes)
+
 app.use('/api/v1/boards/:boardId/lists', listRoutes)
 app.use('/api/v1/lists', listRoutes)
 
