@@ -23,22 +23,13 @@ const Attachment = require('../models/Attachment')
 // @route   GET /api/v1/cards/:cardId
 // @access  Private
 exports.getCard = asyncHandler(async (req, res, next) => {
-  const card = await Card.findById(req.params.id).populate(
-    'assignees',
-    'name email'
-  )
-  // .populate('labels', 'name color')
-
-  if (!card) return next(new ErrorResponse(`Card not found`, 404))
-
-  res.status(200).json({ success: true, data: card })
+  res.status(200).json({ success: true, data: req.card })
 })
 
 // @desc    Create card in list
 // @route   POST /api/v1/cards
 // @access  Private
 exports.createCard = asyncHandler(async (req, res, next) => {
-  // TODO:make sure the user have access to the board!
   const userId = req.user._id.toString()
 
   req.body.created_by = userId
@@ -56,15 +47,14 @@ exports.createCard = asyncHandler(async (req, res, next) => {
 // @route   PUT /api/v1/cards/:cardId
 // @access  Private
 exports.updateCard = asyncHandler(async (req, res, next) => {
-  // TODO:make sure the user have access to the CARD!
+  const card = req.card
 
-  let card = await Card.findById(req.params.id)
-  if (!card) return next(new ErrorResponse('Card not found', 404))
+  card.title = req.body.title || card.title
+  card.description = req.body.description || card.description
+  card.position = req.body.position || card.position
+  card.dueDate = req.body.dueDate || card.dueDate
 
-  card = await Card.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  })
+  await card.save()
 
   res.status(200).json({ success: true, data: card })
 })
@@ -74,10 +64,7 @@ exports.updateCard = asyncHandler(async (req, res, next) => {
 // @access  Private
 /* -------------------- Delete card -------------------- */
 exports.deleteCard = asyncHandler(async (req, res, next) => {
-  const card = await Card.findById(req.params.id)
-  if (!card) return next(new ErrorResponse('Card not found', 404))
-
-  await card.deleteOne()
+  await req.card.deleteOne()
   res.status(200).json({ success: true, data: {} })
 })
 
@@ -85,10 +72,7 @@ exports.deleteCard = asyncHandler(async (req, res, next) => {
 // @route   POST /api/v1/cards/:cardId/duplicate
 // @access  Private
 exports.duplicateCard = asyncHandler(async (req, res, next) => {
-  const originalCard = await Card.findById(req.params.cardId)
-  if (!originalCard) {
-    return next(new ErrorResponse('Card not found', 404))
-  }
+  const originalCard = req.card
 
   // Clone card fields (shallow copy)
   const clonedData = originalCard.toObject()
@@ -113,7 +97,6 @@ exports.duplicateCard = asyncHandler(async (req, res, next) => {
     data: duplicatedCard,
   })
 })
-
 /*___ ___  _ __ ___  _ __ ___   ___ _ __ | |_ ___ 
  / __/ _ \| '_ ` _ \| '_ ` _ \ / _ \ '_ \| __/ __|
 | (_| (_) | | | | | | | | | | |  __/ | | | |_\__ \
@@ -123,9 +106,7 @@ exports.duplicateCard = asyncHandler(async (req, res, next) => {
 // @route   POST /api/v1/cards/:cardId/comments
 // @access  Private
 exports.addComment = asyncHandler(async (req, res, next) => {
-  const card = await Card.findById(req.params.cardId)
-  if (!card) return next(new ErrorResponse('Card not found', 404))
-
+  const card = req.card
   // .create() → makes a properly structured subdocument
   const newComment = card.comments.create({
     userId: req.user.id,
@@ -147,28 +128,30 @@ exports.addComment = asyncHandler(async (req, res, next) => {
 // @route   PUT /api/v1/cards/:cardId/comments/:commentId
 // @access  Private
 exports.updateComment = asyncHandler(async (req, res, next) => {
-  //  TODO: Comment Creator only aothrized to delete/ update its comments
-
-  const card = await Card.findById(req.params.cardId)
-  if (!card) return next(new ErrorResponse('Card not found', 404))
   // Mongoose DocumentArray waprer methods, subDocumnets
   // .id(_id) → find a subdocument by its _id
   // .create() → create a subdocument with default schema rules
   // .pull() → remove a subdocument by ID or value
 
-  // TODO:cehck if the commet is there before deleteion
-  const comment = card.comments.id(req.params.commentId)
+  const comment = req.card.comments.id(req.params.commentId)
+  if (!comment) {
+    return next(new ErrorResponse('No commnet found', 400))
+  }
+  // check access
+  const commnetOwner = comment.userId.toString()
+  const userId = req.user.id
 
-  //   vanila JS
-  //   card.comments.find((c) => c._id.toString() === commentId)
+  if (commnetOwner !== userId) {
+    return next(new ErrorResponse('Not Authroized', 400))
+  }
 
   comment.text = req.body.text || comment.text
 
-  await card.save()
+  await req.card.save()
 
   res.status(201).json({
     success: true,
-    data: card.comments[card.comments.length - 1],
+    data: req.card.comments[req.card.comments.length - 1],
   })
 })
 
@@ -176,21 +159,21 @@ exports.updateComment = asyncHandler(async (req, res, next) => {
 // @route   DELETE /api/v1/cards/:cardId/comments/:commentId
 // @access  Private
 exports.deleteComment = asyncHandler(async (req, res, next) => {
-  // TODO:make sure only creator can delete commment!
-  const card = await Card.findById(req.params.cardId)
-  if (!card) return next(new ErrorResponse('Card not found', 404))
+  const comment = req.card.comments.id(req.params.commentId)
+  if (!comment) {
+    return next(new ErrorResponse('No commnet found', 400))
+  }
+  // check access
+  const commnetOwner = comment.userId.toString()
+  const userId = req.user.id
 
-  // TODO:make sure only creator can delete commment!
+  if (commnetOwner !== userId) {
+    return next(new ErrorResponse('Not Authroized', 400))
+  }
 
   // Monogoose Way
-  card.comments.pull(req.params.commentId)
-  //   card.comments.pull(req.params.commentId)
-
-  // Vanila JS
-  //   card.comments = card.comments.filter(
-  //     (c) => c._id.toString() !== req.params.commentId
-  //   )
-  await card.save()
+  req.card.comments.pull(req.params.commentId)
+  await req.card.save()
 
   res.status(200).json({ success: true, data: {} })
 })
@@ -199,11 +182,7 @@ exports.deleteComment = asyncHandler(async (req, res, next) => {
 // @route   GET /api/v1/cards/:cardId/comments/:commentId
 // @access  Private
 exports.getComments = asyncHandler(async (req, res, next) => {
-  const card = await Card.findById(req.params.cardId)
-
-  if (!card) return next(new ErrorResponse('Card not found', 404))
-
-  res.status(200).json({ success: true, data: card.comments })
+  res.status(200).json({ success: true, data: req.card.comments })
 })
 
 /* -------------------- TODO: Checklist -------------------- */
