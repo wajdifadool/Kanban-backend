@@ -1,4 +1,12 @@
 const express = require('express')
+const router = express.Router({ mergeParams: true })
+const { protect } = require('../middleware/auth')
+
+const {
+  checkBoardAndCardAccess,
+  fetchCard,
+} = require('../middleware/cardMiddleware')
+
 const {
   getCard,
   createCard,
@@ -15,30 +23,31 @@ const {
   toggleChecklistItem,
   deleteChecklistItem,
 } = require('../controllers/cardController')
-const { protect } = require('../middleware/auth')
-const router = express.Router()
+
+router.use(protect) //all routes below require authentication
 
 // /api/v1/cards
-
-router.route('/').post(protect, createCard)
+// OK
+router.route('/').post(checkBoardAndCardAccess, createCard)
 
 router
-  .route('/:id')
-  .get(protect, getCard)
-  .put(protect, updateCard)
-  .delete(protect, deleteCard)
+  .route('/:cardId')
+
+  .get(fetchCard, getCard) // OK
+  .put(fetchCard, updateCard) // OK
+  .delete(fetchCard, deleteCard) // OK
 
 router
   .route('/:cardId/comments')
-  .post(protect, addComment)
-  .get(protect, getComments)
+  .post(fetchCard, addComment) // OK
+  .get(fetchCard, getComments) // OK
+
+router.post('/:cardId/duplicate', fetchCard, duplicateCard)
 
 router
   .route('/:cardId/comments/:commentId')
-  .put(protect, updateComment)
-  .delete(protect, deleteComment)
-
-router.post('/:cardId/duplicate', protect, duplicateCard)
+  .put(fetchCard, updateComment) // OK
+  .delete(fetchCard, deleteComment) // OK
 
 router.route('/:id/attachments').post(protect, uploadFileToCard)
 router.route('/:id/attachments/:attachmentId').delete(protect, deleteAttachment)
