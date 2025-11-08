@@ -39,7 +39,7 @@ describe('Boards - Failure Scenarios', () => {
     const res_2 = await request(app)
       .get(`/api/v1/boards/${board_id}`)
       .set('Authorization', `Bearer ${user_2_token}`)
-    console.log(res_2.body)
+
     expect(res_2.statusCode).toBe(404)
   })
 

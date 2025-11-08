@@ -93,11 +93,28 @@ To run this project locally, you will need the following services running:
 
 ## 🧪 Running Tests
 
-To run the full test suite:
+This project uses **Jest** and for testing, with separate configurations for **unit tests** and **lifecycle tests**.
+
+### Test Setup Overview
+
+- **Unit Tests**: cover individual functions or modules in isolation.
+
+- **Lifecycle Tests**: cover the full flow of a modules, (e.g., users, boards, cards).
+
+- **Setup config**: We use a `mongodb-memory-server` for local MongoDB server for our tests
+
+---
+
+### Available Test Commands
+
+#### 1. **Run All Tests**
 
 ```bash
-# Example for Node.js
-npm test
+npm run test            # all tests
+npm run test:unit       # unit testing
+npm run test:lifecycle  # lifecycle testing
+npm run test:lifecycle:single <file_path>  # single lifecycle testing
+npm run test:unit:single  <file_path> # single unit testing
 ```
 
 ## 📖 API Documentation

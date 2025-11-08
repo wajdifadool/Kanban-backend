@@ -1,7 +1,10 @@
 // USED FOR TESTING
 // app.js
-const express = require('express')
 const dotenv = require('dotenv')
+dotenv.config({ path: './config/.env', quiet: true })
+
+const express = require('express')
+
 const morgan = require('morgan')
 const cookieParser = require('cookie-parser')
 const fileUpload = require('express-fileupload')
@@ -14,8 +17,6 @@ const authRoutes = require('./routes/auth')
 const boardRoutes = require('./routes/boardRoutes')
 const listRoutes = require('./routes/listRoutes')
 const cardRoutes = require('./routes/cardRoutes')
-
-dotenv.config({ path: './config/.env' })
 
 const app = express()
 app.use(express.json())

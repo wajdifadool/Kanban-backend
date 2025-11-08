@@ -105,8 +105,8 @@ exports.addMember = asyncHandler(async (req, res, next) => {
   const board = req.board
   const ownerId = req.board.owner.toString()
 
-  console.log(memberId)
-  console.log(ownerId)
+  // console.log(memberId)
+  // console.log(ownerId)
 
   if (ownerId === memberId) {
     return next(new ErrorResponse('Owner already  is memeber', 400))
