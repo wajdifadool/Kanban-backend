@@ -53,5 +53,3 @@ app.listen(PORT, () => {
 app.get('/', (req, res) => {
   res.send('Welcome to the homepage of your API!')
 })
-
-// fire up action
