@@ -48,7 +48,7 @@ exports.fetchBoard = asyncHandler(async (req, res, next) => {
       ) //TODO: beeter response !
     )
   }
-  console.log('boardMiddleware.js()::getBoardMiddleware()', board)
+
   req.board = board
   next()
 })
