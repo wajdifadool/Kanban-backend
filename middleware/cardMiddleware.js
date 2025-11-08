@@ -35,7 +35,7 @@ exports.checkBoardAndCardAccess = asyncHandler(async (req, res, next) => {
 })
 
 exports.fetchCard = asyncHandler(async (req, res, next) => {
-  console.log('Fetch card called ')
+  // console.log('Fetch card called ')
   const { cardId } = req.params
   const userId = req.user._id
 

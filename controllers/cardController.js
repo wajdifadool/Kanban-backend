@@ -106,7 +106,11 @@ exports.duplicateCard = asyncHandler(async (req, res, next) => {
 // @route   POST /api/v1/cards/:cardId/comments
 // @access  Private
 exports.addComment = asyncHandler(async (req, res, next) => {
+  // console.log(req.card)
   const card = req.card
+  if (!req.body.text || req.body.text.trim() === '') {
+    return next(new ErrorResponse('Text is required for the comment', 400))
+  }
   // .create() → makes a properly structured subdocument
   const newComment = card.comments.create({
     userId: req.user.id,
@@ -149,7 +153,7 @@ exports.updateComment = asyncHandler(async (req, res, next) => {
 
   await req.card.save()
 
-  res.status(201).json({
+  res.status(200).json({
     success: true,
     data: req.card.comments[req.card.comments.length - 1],
   })
