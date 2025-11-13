@@ -20,8 +20,9 @@ const {
   deleteAttachment,
   getComments,
   addChecklistItem,
-  toggleChecklistItem,
+  updateChecklistItem,
   deleteChecklistItem,
+  getAllCardCheckListItems,
 } = require('../controllers/cardController')
 
 router.use(protect) //all routes below require authentication
@@ -32,7 +33,6 @@ router.route('/').post(checkBoardAndCardAccess, createCard)
 
 router
   .route('/:cardId')
-
   .get(fetchCard, getCard) // OK
   .put(fetchCard, updateCard) // OK
   .delete(fetchCard, deleteCard) // OK
@@ -49,25 +49,18 @@ router
   .put(fetchCard, updateComment) // OK
   .delete(fetchCard, deleteComment) // OK
 
-router.route('/:id/attachments').post(protect, uploadFileToCard)
-router.route('/:id/attachments/:attachmentId').delete(protect, deleteAttachment)
+router.route('/:cardId/attachments').post(protect, uploadFileToCard)
+router
+  .route('/:cardId/attachments/:attachmentId')
+  .delete(protect, deleteAttachment)
 
-/* ---------------------- Nested Routes: Checklist ---------------------- */
+/* ----------------------  Checklist ---------------------- */
+router.route('/:cardId/checklist45').post(fetchCard, addChecklistItem)
+router.route('/:cardId/checklist/:itemId').put(fetchCard, updateChecklistItem)
+router
+  .route('/:cardId/checklist/:itemId')
+  .delete(fetchCard, deleteChecklistItem)
 
-// @desc    Add checklist item
-// @route   POST /api/v1/cards/:cardId/checklist
-// @access  Private
-router.route('/:cardId/checklist').post(protect, addChecklistItem)
+router.route('/:cardId/checklist').get(fetchCard, getAllCardCheckListItems)
 
-// @desc    Toggle checklist item done/undone
-// @route   PUT /api/v1/cards/:cardId/checklist/:itemId
-// @access  Private
-router.route('/:cardId/checklist/:itemId').put(protect, toggleChecklistItem)
-
-// @desc    Delete checklist item
-// @route   DELETE /api/v1/cards/:cardId/checklist/:itemId
-// @access  Private
-router.route('/:cardId/checklist/:itemId').delete(protect, deleteChecklistItem)
-
-// uploading file
 module.exports = router
