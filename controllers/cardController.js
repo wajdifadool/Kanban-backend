@@ -189,48 +189,55 @@ exports.getComments = asyncHandler(async (req, res, next) => {
   res.status(200).json({ success: true, data: req.card.comments })
 })
 
-/* -------------------- TODO: Checklist -------------------- */
+/* 
+      _               _    _     _     _   
+  ___| |__   ___  ___| | _| |   (_)___| |_ 
+ / __| '_ \ / _ \/ __| |/ / |   | / __| __|
+| (__| | | |  __/ (__|   <| |___| \__ \ |_ 
+ \___|_| |_|\___|\___|_|\_\_____|_|___/\__|
+                                           
+*/
 
-// @desc Add checklist item
+// @desc    Add checklist item
+// @route   POST /api/v1/cards/:cardId/checklist
+// @access  Private
 exports.addChecklistItem = asyncHandler(async (req, res, next) => {
-  const card = await Card.findById(req.params.cardId)
-  if (!card) return next(new ErrorResponse('Card not found', 404))
-
-  const item = { text: req.body.text, isDone: false }
-  card.checklist.push(item)
-  await card.save()
+  const item = { text: req.body.text, isDone: req.body.isDone }
+  req.card.checklist.push(item)
+  await req.card.save()
 
   res.status(201).json({
     success: true,
-    data: card.checklist[card.checklist.length - 1],
+    data: req.card.checklist[req.card.checklist.length - 1],
   })
 })
 
-// @desc Toggle checklist item
-exports.toggleChecklistItem = asyncHandler(async (req, res, next) => {
-  const card = await Card.findById(req.params.cardId)
-  if (!card) return next(new ErrorResponse('Card not found', 404))
+// @desc    Update checklist item done/undone
+// @route   PUT /api/v1/cards/:cardId/checklist/:itemId
+// @access  Private
+exports.updateChecklistItem = asyncHandler(async (req, res, next) => {
+  const item = req.card.checklist.id(req.params.itemId)
+  console.log(req.params.itemId)
 
-  const item = card.checklist.id(req.params.itemId)
   if (!item) return next(new ErrorResponse('Checklist item not found', 404))
 
-  item.isDone = !item.isDone
-  await card.save()
+  item.isDone = req.body.isDone
+  await req.card.save()
 
   res.status(200).json({ success: true, data: item })
 })
 
-// @desc Delete checklist item
+exports.getAllCardCheckListItems = asyncHandler(async (req, res, next) => {
+  res.status(200).json({ success: true, data: req.card.checklist })
+})
+
+// @desc    Delete checklist item
+// @route   DELETE /api/v1/cards/:cardId/checklist/:itemId
+// @access  Private
 exports.deleteChecklistItem = asyncHandler(async (req, res, next) => {
-  const card = await Card.findById(req.params.cardId)
-  if (!card) return next(new ErrorResponse('Card not found', 404))
-
-  card.checklist = card.checklist.filter(
-    (i) => i._id.toString() !== req.params.itemId
-  )
-  await card.save()
-
-  res.status(200).json({ success: true, data: card.checklist })
+  req.card.checklist.pull(req.params.itemId)
+  await req.card.save()
+  res.status(200).json({ success: true, data: {} })
 })
 
 /* -------------------- TODO: File Uploading -------------------- */
