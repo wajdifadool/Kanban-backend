@@ -54,8 +54,8 @@ router
   .route('/:cardId/attachments/:attachmentId')
   .delete(protect, deleteAttachment)
 
-/* ----------------------  Checklist ---------------------- */
-router.route('/:cardId/checklist45').post(fetchCard, addChecklistItem)
+// some commit
+router.route('/:cardId/checklist').post(fetchCard, addChecklistItem)
 router.route('/:cardId/checklist/:itemId').put(fetchCard, updateChecklistItem)
 router
   .route('/:cardId/checklist/:itemId')
