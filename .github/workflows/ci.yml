@@ -35,7 +35,12 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # Step 4: Run your test script
+      # Step 4: Run ESLint to check for code quality issues
+      # Make sure you have a "lint" script in your package.json!
+      - name: Run ESLint
+        run: npm run lint
+
+      # Step 5: Run your test script
       # Make sure your package.json has a "test" script, e.g. "jest" or "mocha"
       - name: Run tests
         run: npm test
