@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "test:lifecycle": "jest --selectProjects lifecycle",
     "test:unit": "jest --selectProjects unit",
     "test": "npm run test:unit && npm run test:lifecycle",
@@ -58,6 +60,10 @@
     "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.0.3",
+    "eslint-plugin-jest": "^29.15.0",
+    "globals": "^17.4.0",
     "jest": "^30.2.0",
     "mongodb-memory-server": "^10.2.3",
     "supertest": "^7.1.4"
