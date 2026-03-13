@@ -10,9 +10,28 @@ const connectDB = require('./config/db')
 const errorHandler = require('./middleware/errorHandler')
 const app = express()
 const passport = require('passport') // For google auth
+// const http = require('http') // Import http module for WebSocket
 
+// Create HTTP server for WebSocket
+// const server = http.createServer(app)
+
+// // Initialize socket.io
+// const io = require('socket.io')(server, {
+//   cors: {
+//     origin: "*",  // Allow all origins (you can restrict this for security)
+//     methods: ["GET", "POST"]
+//   }
+// })
+
+// initialize socket manager (creates io and export)
+// const { initSocket } = require('./sockets/socketManager')
+// const io = initSocket(server)
+// Make io available globally if you want (optional)
+// require('./sockets/socketManager').getIo = () => io;
+
+// require listeners AFTER socketManager init so they can use socketManager
+require('./events') // index file that imports all listeners
 require('./passport') // must be before passport.use()
-
 app.use(passport.initialize())
 
 // Routes

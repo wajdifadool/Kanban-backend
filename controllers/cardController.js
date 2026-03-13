@@ -18,6 +18,7 @@ const Card = require('../models/Card')
 const fs = require('fs')
 const path = require('path')
 const Attachment = require('../models/Attachment')
+const emitActivity = require('../events/emitActivity')
 
 // @desc    Get single card
 // @route   GET /api/v1/cards/:cardId
@@ -40,6 +41,11 @@ exports.createCard = asyncHandler(async (req, res, next) => {
 
   const card = await Card.create(req.body)
 
+  // 🚀 Emit Activity Event
+  emitActivity('card.created', {
+    user: req.user,
+    card,
+  })
   res.status(201).json({ success: true, data: card })
 })
 
@@ -48,6 +54,22 @@ exports.createCard = asyncHandler(async (req, res, next) => {
 // @access  Private
 exports.updateCard = asyncHandler(async (req, res, next) => {
   const card = req.card
+  const fromListId = req.card.listId.toString()
+
+  if (req.body && req.body.toListId) {
+    // Move Card to new List
+    card.listId = req.body.toListId
+    await card.save()
+
+    emitActivity('card.moved', {
+      user: req.user,
+      card,
+      fromListId,
+      toListId: req.body.toListId,
+    })
+
+    return res.status(200).json({ success: true, data: card })
+  }
 
   card.title = req.body.title || card.title
   card.description = req.body.description || card.description
@@ -55,6 +77,12 @@ exports.updateCard = asyncHandler(async (req, res, next) => {
   card.dueDate = req.body.dueDate || card.dueDate
 
   await card.save()
+
+  // 🚀 Emit Activity Event
+  emitActivity('card.updated', {
+    user: req.user,
+    card,
+  })
 
   res.status(200).json({ success: true, data: card })
 })
@@ -65,6 +93,13 @@ exports.updateCard = asyncHandler(async (req, res, next) => {
 /* -------------------- Delete card -------------------- */
 exports.deleteCard = asyncHandler(async (req, res, next) => {
   await req.card.deleteOne()
+
+  // 🚀 Emit Activity Event
+  emitActivity('card.deleted', {
+    user: req.user,
+    card: req.card,
+  })
+
   res.status(200).json({ success: true, data: {} })
 })
 
@@ -92,6 +127,12 @@ exports.duplicateCard = asyncHandler(async (req, res, next) => {
   // 4️⃣ Create the new card
   const duplicatedCard = await Card.create(clonedData)
 
+  emitActivity('card.duplicated', {
+    user: req.user,
+    card: duplicatedCard,
+    fromListId: originalCard.listId,
+    toListId: clonedData.listId,
+  })
   res.status(201).json({
     success: true,
     data: duplicatedCard,
@@ -122,6 +163,11 @@ exports.addComment = asyncHandler(async (req, res, next) => {
 
   await card.save()
 
+  // 🚀 Emit Activity Event
+  emitActivity('comment.created', {
+    user: req.user,
+    card,
+  })
   res.status(201).json({
     success: true,
     data: card.comments[card.comments.length - 1],
@@ -198,47 +244,49 @@ exports.getComments = asyncHandler(async (req, res, next) => {
                                            
 */
 
-// @desc    Add checklist item
-// @route   POST /api/v1/cards/:cardId/checklist
-// @access  Private
-exports.addChecklistItem = asyncHandler(async (req, res, next) => {
-  const item = { text: req.body.text, isDone: req.body.isDone }
-  req.card.checklist.push(item)
-  await req.card.save()
+// TODO:
+// // @desc    Add checklist item
+// // @route   POST /api/v1/cards/:cardId/checklist
+// // @access  Private
+// exports.addChecklistItem = asyncHandler(async (req, res, next) => {
+//   const item = { text: req.body.text, isDone: req.body.isDone }
+//   req.card.checklist.push(item)
+//   await req.card.save()
 
-  res.status(201).json({
-    success: true,
-    data: req.card.checklist[req.card.checklist.length - 1],
-  })
-})
+//   res.status(201).json({
+//     success: true,
+//     data: req.card.checklist[req.card.checklist.length - 1],
+//   })
+// })
 
-// @desc    Update checklist item done/undone
-// @route   PUT /api/v1/cards/:cardId/checklist/:itemId
-// @access  Private
-exports.updateChecklistItem = asyncHandler(async (req, res, next) => {
-  const item = req.card.checklist.id(req.params.itemId)
-  console.log(req.params.itemId)
+// // @desc    Update checklist item done/undone
+// // @route   PUT /api/v1/cards/:cardId/checklist/:itemId
+// // @access  Private
+// exports.updateChecklistItem = asyncHandler(async (req, res, next) => {
+//   const item = req.card.checklist.id(req.params.itemId)
+//   console.log(req.params.itemId)
 
-  if (!item) return next(new ErrorResponse('Checklist item not found', 404))
+//   if (!item) return next(new ErrorResponse('Checklist item not found', 404))
 
-  item.isDone = req.body.isDone
-  await req.card.save()
+//   item.isDone = req.body.isDone
+//   await req.card.save()
 
-  res.status(200).json({ success: true, data: item })
-})
+//   res.status(200).json({ success: true, data: item })
+// })
 
-exports.getAllCardCheckListItems = asyncHandler(async (req, res, next) => {
-  res.status(200).json({ success: true, data: req.card.checklist })
-})
+// exports.getAllCardCheckListItems = asyncHandler(async (req, res, next) => {
+//   res.status(200).json({ success: true, data: req.card.checklist })
+// })
 
-// @desc    Delete checklist item
-// @route   DELETE /api/v1/cards/:cardId/checklist/:itemId
-// @access  Private
-exports.deleteChecklistItem = asyncHandler(async (req, res, next) => {
-  req.card.checklist.pull(req.params.itemId)
-  await req.card.save()
-  res.status(200).json({ success: true, data: {} })
-})
+// // @desc    Delete checklist item
+// // @route   DELETE /api/v1/cards/:cardId/checklist/:itemId
+// // @access  Private
+// exports.deleteChecklistItem = asyncHandler(async (req, res, next) => {
+//   req.card.checklist.pull(req.params.itemId)
+//   await req.card.save()
+//   res.status(200).json({ success: true, data: {} })
+// })
+// END OF TODO:
 
 /* -------------------- TODO: File Uploading -------------------- */
 
@@ -247,21 +295,22 @@ exports.deleteChecklistItem = asyncHandler(async (req, res, next) => {
 // @access  Private
 exports.uploadFileToCard = asyncHandler(async (req, res, next) => {
   // TODO:maby this should be the middleware where we get the card each time
-  const card = await Card.findOne({
-    _id: req.params.id,
-    $or: [{ created_by: req.user._id }, { assignees: req.user._id }],
-  })
+  // const card = await Card.findOne({
+  //   _id: req.params.id,
+  //   $or: [{ created_by: req.user._id }, { assignees: req.user._id }],
+  // })
 
-  if (!card)
-    return next(new ErrorResponse('Card not found or not authorized', 404))
+  // if (!card)
+  //   return next(new ErrorResponse('Card not found or not authorized', 404))
 
+  const card = req.card
   // Check file existence
   if (!req.files || !req.files.file) {
     return next(new ErrorResponse('Please upload a file', 400))
   }
 
   const file = req.files.file
-
+  console.log(file)
   // Validate file type (you can extend this)
   if (!file.mimetype.startsWith('image') && !file.mimetype.includes('pdf')) {
     return next(new ErrorResponse(`Please upload an image or PDF file`, 400))
@@ -289,6 +338,8 @@ exports.uploadFileToCard = asyncHandler(async (req, res, next) => {
   const ext = path.parse(file.name).ext
   const fileName = `card_${card._id}_${Date.now()}${ext}`
   const filePath = path.join(uploadPath, fileName)
+
+  console.log(req.card)
 
   // Move file to upload folder
   file.mv(filePath, async (err) => {
@@ -330,15 +381,15 @@ exports.uploadFileToCard = asyncHandler(async (req, res, next) => {
 // @access  Private
 exports.deleteAttachment = asyncHandler(async (req, res, next) => {
   // TODO:maby this should be the middleware where we get the card each time
-  const { cardId, attachmentId } = req.params
+  const { attachmentId } = req.params
+  const card = req.card
+  // const card = await Card.findOne({
+  //   _id: req.params.id,
+  //   $or: [{ created_by: req.user._id }, { assignees: req.user._id }],
+  // })
 
-  const card = await Card.findOne({
-    _id: req.params.id,
-    $or: [{ created_by: req.user._id }, { assignees: req.user._id }],
-  })
-
-  if (!card)
-    return next(new ErrorResponse('Card not found or not authorized', 404))
+  // if (!card)
+  //   return next(new ErrorResponse('Card not found or not authorized', 404))
 
   const attachment = await Attachment.findOne({
     _id: attachmentId,

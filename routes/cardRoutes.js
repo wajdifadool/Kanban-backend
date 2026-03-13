@@ -19,10 +19,10 @@ const {
   uploadFileToCard,
   deleteAttachment,
   getComments,
-  addChecklistItem,
-  updateChecklistItem,
-  deleteChecklistItem,
-  getAllCardCheckListItems,
+  // addChecklistItem,
+  // updateChecklistItem,
+  // deleteChecklistItem,
+  // getAllCardCheckListItems,
 } = require('../controllers/cardController')
 
 router.use(protect) //all routes below require authentication
@@ -49,18 +49,18 @@ router
   .put(fetchCard, updateComment) // OK
   .delete(fetchCard, deleteComment) // OK
 
-router.route('/:cardId/attachments').post(protect, uploadFileToCard)
+router.route('/:cardId/attachments').post(protect, fetchCard, uploadFileToCard)
 router
   .route('/:cardId/attachments/:attachmentId')
-  .delete(protect, deleteAttachment)
+  .delete(protect, fetchCard, deleteAttachment)
 
 // some commit
-router.route('/:cardId/checklist').post(fetchCard, addChecklistItem)
-router.route('/:cardId/checklist/:itemId').put(fetchCard, updateChecklistItem)
-router
-  .route('/:cardId/checklist/:itemId')
-  .delete(fetchCard, deleteChecklistItem)
+// router.route('/:cardId/checklist').post(fetchCard, addChecklistItem)
+// router.route('/:cardId/checklist/:itemId').put(fetchCard, updateChecklistItem)
+// router
+//   .route('/:cardId/checklist/:itemId')
+//   .delete(fetchCard, deleteChecklistItem)
 
-router.route('/:cardId/checklist').get(fetchCard, getAllCardCheckListItems)
+// router.route('/:cardId/checklist').get(fetchCard, getAllCardCheckListItems)
 
 module.exports = router

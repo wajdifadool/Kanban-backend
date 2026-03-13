@@ -61,6 +61,7 @@ exports.fetchCard = asyncHandler(async (req, res, next) => {
   if (!hasAccess) {
     return next(new ErrorResponse('Not authorized to access this card', 403))
   }
+
   req.card = card
   next()
 })
