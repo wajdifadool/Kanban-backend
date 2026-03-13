@@ -7,7 +7,6 @@ describe('Cards Full Lifecycle - Failure Cases', () => {
   let boardId
   let listId
   let cardId
-  let commnetId
 
   beforeAll(async () => {
     user1Token = await registerAndLogin('admin@gmail.com')

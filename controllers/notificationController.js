@@ -1,7 +1,7 @@
 // src/controllers/notificationController.js
 const Notification = require('../models/Notification')
 
-exports.getNotifications = async (req, res, next) => {
+exports.getNotifications = async (req, res) => {
   const userId = req.user._id
   const notifications = await Notification.find({ user_id: userId })
     .sort({ created_at: -1 })
@@ -11,7 +11,7 @@ exports.getNotifications = async (req, res, next) => {
     .json({ success: true, count: notifications.length, data: notifications })
 }
 
-exports.markAsRead = async (req, res, next) => {
+exports.markAsRead = async (req, res) => {
   const userId = req.user._id
   const notId = req.params.id
 

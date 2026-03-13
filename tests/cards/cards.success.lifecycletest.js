@@ -8,9 +8,6 @@ describe('Cards full lifecycle', () => {
   let listId
   let cardId
   let commnetId
-  let checkListItemId
-
-  let attachmentId
 
   beforeAll(async () => {
     user1Token = await registerAndLogin('admin@gmail.com')
@@ -100,59 +97,6 @@ describe('Cards full lifecycle', () => {
     expect(res.statusCode).toBe(200)
     expect(res.body.data).toEqual({})
   })
-  // it('should add check Listitem', async () => {
-  //   const res = await request(app)
-  //     .post(`/api/v1/cards/${cardId}/checklist`)
-  //     .set('Authorization', `Bearer ${user1Token}`)
-  //     .send({
-  //       text: 'This is a check list item 1 ',
-  //       isDone: false,
-  //     })
-  //   checkListItemId = res.body.data._id
-
-  //   expect(res.statusCode).toBe(201)
-  //   expect(res.body.data.text).toBe('This is a check list item 1 ')
-  //   expect(res.body.data.isDone).toBe(false)
-  // })
-
-  // it('should gel all check List items', async () => {
-  //   const res = await request(app)
-  //     .get(`/api/v1/cards/${cardId}/checklist/`)
-  //     .set('Authorization', `Bearer ${user1Token}`)
-
-  //   expect(res.statusCode).toBe(200)
-  //   expect(res.body.data).toHaveLength(1)
-  // })
-
-  // it('should update check Listitem', async () => {
-  //   const res = await request(app)
-  //     .put(`/api/v1/cards/${cardId}/checklist/${checkListItemId}`)
-  //     .set('Authorization', `Bearer ${user1Token}`)
-  //     .send({
-  //       isDone: false,
-  //     })
-  //   expect(res.statusCode).toBe(200)
-  //   expect(res.body.data.isDone).toBe(false)
-  // })
-
-  // it('should delte check Listitem', async () => {
-  //   const res = await request(app)
-  //     .delete(`/api/v1/cards/${cardId}/checklist/${checkListItemId}`)
-  //     .set('Authorization', `Bearer ${user1Token}`)
-
-  //   expect(res.statusCode).toBe(200)
-  //   expect(res.body.data).toEqual({}) // Expecting empty object as the data response
-  // })
-
-  // it('should gel all check List items second time', async () => {
-  //   const res = await request(app)
-  //     .get(`/api/v1/cards/${cardId}/checklist/`)
-  //     .set('Authorization', `Bearer ${user1Token}`)
-
-  //   expect(res.statusCode).toBe(200)
-
-  //   expect(res.body.data).toHaveLength(0)
-  // })
 
   it('should duplicate the card', async () => {
     const res = await request(app)
@@ -176,13 +120,4 @@ describe('Cards full lifecycle', () => {
     expect(res.body.success).toBe(true)
     expect(res.body.data).toEqual({}) // Expecting empty object as the data response
   })
-
-  // it('should attach a file', async () => {
-  //   const res = await request(app)
-  //     .post(`/api/v1/cards/${cardId}/attachments`)
-  //     .set('Authorization', `Bearer ${user1Token}`)
-  //     .attach('file', '__tests__/fixtures/test-image.png')
-
-  //   expect(res.statusCode).toBe(201)
-  // })
 })

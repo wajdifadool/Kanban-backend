@@ -1,7 +1,7 @@
 const request = require('supertest')
 
 const app = require('../../app') // NOT server.js
-const mongoose = require('mongoose')
+
 const User = require('../../models/user')
 
 describe('Auth API', () => {

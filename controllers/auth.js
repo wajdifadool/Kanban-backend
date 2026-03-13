@@ -9,7 +9,7 @@ const passport = require('passport')
 // @desc    Register user
 // @route   GET /api/v1/auth/register
 // @access  Public
-exports.registerUser = asyncHandler(async (req, res, next) => {
+exports.registerUser = asyncHandler(async (req, res) => {
   const { name, email, password, avatarUrl } = req.body
   const user = await User.create({
     name,
@@ -59,7 +59,7 @@ exports.loginUser = asyncHandler(async (req, res, next) => {
 // @desc    Log user out / clear Cookie
 // @route   GET /api/v1/auth/logout
 // @access  Private
-exports.logout = asyncHandler(async (req, res, next) => {
+exports.logout = asyncHandler(async (req, res) => {
   res.cookie('token', 'none', {
     expires: new Date(Date.now() + 10 * 1000),
     httpOnly: true,
@@ -74,7 +74,7 @@ exports.logout = asyncHandler(async (req, res, next) => {
 // @desc    Get current logged in user
 // @route   GET /api/v1/auth/me
 // @access  Private
-exports.getMe = asyncHandler(async (req, res, next) => {
+exports.getMe = asyncHandler(async (req, res) => {
   // we have accses to req.user via the protect middleware
   const user = await User.findById(req.user.id)
 
@@ -86,7 +86,7 @@ exports.getMe = asyncHandler(async (req, res, next) => {
 // @desc      Update user details
 // @route     PUT /api/v1/auth/updatedetails
 // @access    Private
-exports.updateDetails = asyncHandler(async (req, res, next) => {
+exports.updateDetails = asyncHandler(async (req, res) => {
   const fieldsToUpdate = {
     name: req.body.name,
     email: req.body.email,

@@ -9,7 +9,7 @@ const morgan = require('morgan')
 const cookieParser = require('cookie-parser')
 const fileUpload = require('express-fileupload')
 const path = require('path')
-const connectDB = require('./config/db')
+// const connectDB = require('./config/db')
 const errorHandler = require('./middleware/errorHandler')
 
 // Routes
@@ -41,3 +41,4 @@ app.use('/api/v1/cards', cardRoutes)
 app.use(errorHandler)
 
 module.exports = app
+// nothing
