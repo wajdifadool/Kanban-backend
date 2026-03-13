@@ -1,6 +1,6 @@
 const request = require('supertest')
 const app = require('../../app')
-const User = require('../../models/user')
+// const User = require('../../models/user')
 
 // Utility: create user and return { token, user }
 const createUser = async (userDetails) => {
@@ -9,7 +9,7 @@ const createUser = async (userDetails) => {
 }
 
 describe('Boards - Success Scenarios', () => {
-  let owner, tokenOwner
+  let /**owner */ tokenOwner
 
   beforeEach(async () => {
     // Create owner
@@ -19,7 +19,7 @@ describe('Boards - Success Scenarios', () => {
       password: 'password123',
     })
     tokenOwner = res.token
-    owner = await User.findOne({ email: 'owner@example.com' })
+    // owner = await User.findOne({ email: 'owner@example.com' })
   })
 
   it('should create board', async () => {
